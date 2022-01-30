@@ -5,7 +5,7 @@ cat("\n\n##### E01 Financial Model #####\n")
 ###############################@
 cat(paste("\n",now(),"01. Set Up Workspace"))
 
-#Filtering Function 
+#Filtering Function
 mFilter <- function(dataTableName, Criteria)
 {eval(parse(text = paste("m <- ", dataTableName, "[", Criteria ,", .N]")))
   eval(parse(text = paste("n <- ", dataTableName, "[, .N]")))  
