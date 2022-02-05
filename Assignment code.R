@@ -3,10 +3,11 @@ rm(list=ls())
 gc()
 
 library(readxl)
-library(dplyr)
+library(plyr)
 library(data.table)
 library(caret)
 library(DataExplorer)
+library(dplyr)
 
 VarPathStore <- getwd()
 VarPathSeparator <- "/"
@@ -95,24 +96,39 @@ train_sb_te <- train_sb[, -..remove_col]
 plot_histogram(train_sb_te)
 plot_correlation(train_sb_te)
 
+glimpse(train_sb_te)
+corr_data <- train_sb_te[,-c("classe")]
+
+M <- abs(cor(corr_data))
+diag(M) <- 0
+which(M>0.8,arr.ind = T)
+summary(train_sb_te)
 
 
+################################@
+##### ___A: Data Preprocess #####
+################################@
 
+# Standardize the features 
+preObj <- preProcess(train_sb_te[,-c("classe")],method = c("center","scale"))
+trainData <- predict(preObj,train_sb_te[,-c("classe")])
+plot_histogram(trainData)
 
+# PCA with caret
+preProc <- preProcess(trainData,method="pca",pcaComp = 24)
+trainPC <- predict(preProc,trainData)
 
+target <- train_sb_te[,c("classe")]
+trainPC <- cbind(trainPC,target)
+# glimpse(trainPC)
 
+##############################@
+##### ___B: Fit the model #####
+##############################@
+train_sb_te$classe <- factor(train_sb_te$classe)
+mod_gbm <- train(classe~., method="gbm",data=trainPC,verbose=FALSE)
 
-
-
-
-
-
-
-
-
-
-
-
+mod_gbm_test <- train(classe~., method="gbm",data=train_sb_te,verbose=FALSE)
 
 
 
