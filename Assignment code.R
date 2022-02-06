@@ -88,8 +88,7 @@ remove_col<- c("new_window"
                ,"gyros_dumbbell_y"
                ,"gyros_dumbbell_z"
                ,"gyros_forearm_y"
-               ,"gyros_forearm_z"
-)
+               ,"gyros_forearm_z")
 
 train_sb_te <- train_sb[, -..remove_col]
 
@@ -112,7 +111,7 @@ summary(train_sb_te)
 # Standardize the features 
 preObj <- preProcess(train_sb_te[,-c("classe")],method = c("center","scale"))
 trainData <- predict(preObj,train_sb_te[,-c("classe")])
-plot_histogram(trainData)
+# plot_histogram(trainData)
 
 # PCA with caret
 preProc <- preProcess(trainData,method="pca",pcaComp = 24)
@@ -129,16 +128,30 @@ train_sb_te$classe <- factor(train_sb_te$classe)
 trainPC$classe <- factor(trainPC$classe)
 
 mod_gbm <- train(classe~., method="gbm",data=trainPC,verbose=FALSE)
+trainPC <- setDT(trainPC)
+pred_tbl <- predict(mod_gbm,trainPC[,-c("classe")])
+confusionMatrix(data=pred_tbl,reference=trainPC$classe)
+
+grid <- expand.grid(n.trees=10, interaction.depth=2, shrinkage=0.5, n.minobsinnode=30) 
 
 mod_gbm_test <- train(classe~., method="gbm",data=train_sb_te,verbose=FALSE)
+mod_gbm_test <- train(classe~., method="gbm",data=train_sb_te,tuneGrid=grid,verbose=FALSE)
+
 mod_gbm_test_pred <- predict(mod_gbm_test,train_sb_te[,-c("classe")])
 mod_gbm_pred <- predict(mod_gbm_test,test_tbl)
 
+plot(mod_gbm_test, main="Model Accuracies with GBM")
+plot(mod_gbm_test)
+
+plot(varImp(mod_gbm_test),top=10)
 
 confusionMatrix(data=mod_gbm_test_pred,reference=trainPC$classe)
 
 summary(mod_gbm_test)
 
+chk <- mod_gbm$results
+chk <- mod_gbm$perfNames 
+plot(mod_gbm,metric = "Rsquared")
 
-
+plot
 
